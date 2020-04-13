@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Instrumented","A future, stream, sink, or executor that has been instrumented with a tracer and span."]],"trait":[["Instrument","Extension trait allowing futures, streams, sinks, and executors to be traced with a span."]]});

@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["SimpleSpanProcessor","`SimpleSpanProcessor` is used by exporters to receive SpanData synchronously when span is finished."]]});

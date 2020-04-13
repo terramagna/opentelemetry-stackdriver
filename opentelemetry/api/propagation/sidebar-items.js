@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["binary_propagator","Binary Propagator"],["noop","No-op OpenTelemetry Propagation Implementation"],["text_propagator","Text Propagator"]],"trait":[["Carrier","Carriers provide an interface for adding and removing fields from an underlying struct like `HashMap`."]]});

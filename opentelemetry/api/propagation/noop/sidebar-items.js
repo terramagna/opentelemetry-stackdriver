@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["NoopBinaryFormat","A no-op instance of `BinaryFormat`"],["NoopTextFormat","A no-op instance of a `HttpTextFormat`."]]});
