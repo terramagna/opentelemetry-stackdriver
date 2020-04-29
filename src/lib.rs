@@ -100,12 +100,7 @@ impl StackDriverExporter {
         let bearer_token = format!("Bearer {}", token.as_str());
         let header_value = MetadataValue::from_str(&bearer_token)?;
 
-        let mut rustls_config = rustls::ClientConfig::new();
-        rustls_config
-            .root_store
-            .add_server_trust_anchors(&webpki_roots::TLS_SERVER_ROOTS);
-        rustls_config.set_protocols(&[Vec::from("h2".as_bytes())]);
-        let tls_config = ClientTlsConfig::new().rustls_client_config(rustls_config);
+        let tls_config = ClientTlsConfig::new().domain_name(uri.host().unwrap());
 
         let channel = Channel::builder(uri)
             .tls_config(tls_config)
