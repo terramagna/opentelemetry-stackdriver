@@ -29,6 +29,7 @@ use std::sync::{
     atomic::{AtomicUsize, Ordering},
     Arc,
 };
+use std::convert::AsRef;
 use std::time::{Duration, Instant};
 use tonic::metadata::MetadataValue;
 use tonic::transport::{Channel, ClientTlsConfig};
@@ -98,6 +99,7 @@ impl StackDriverExporter {
         let scopes = &["https://www.googleapis.com/auth/trace.append"];
         let token = authenticator.token(scopes).await?;
         let bearer_token = format!("Bearer {}", token.as_str());
+
         let header_value = MetadataValue::from_str(&bearer_token)?;
 
         let tls_config = ClientTlsConfig::new().domain_name(uri.host().unwrap());
@@ -158,9 +160,17 @@ impl StackDriverExporter {
                                 .attributes
                                 .iter()
                                 .map(|(key, value)| {
+                                    let key = match key.inner().as_ref() {
+                                        "httpRequest.requestUrl" => String::from("/http/url"),
+                                        "httpRequest.status" => String::from("/http/status_code"),
+                                        "httpRequest.method" => String::from("/http/method"),
+                                        "httpRequest.responseSize" => String::from("/http/response/size"),
+                                        key => key.to_string()
+                                    };
+
                                     (
-                                        key.inner().clone().into_owned(),
-                                        attribute_value_conversion(value.clone()),
+                                        key,
+                                        attribute_value_conversion(value),
                                     )
                                 })
                                 .collect(),
@@ -250,15 +260,15 @@ impl SpanExporter for StackDriverExporter {
     }
 }
 
-fn attribute_value_conversion(v: Value) -> AttributeValue {
+fn attribute_value_conversion(v: &Value) -> AttributeValue {
     use proto::google::devtools::cloudtrace::v2::attribute_value;
     let new_value = match v {
-        Value::Bool(v) => attribute_value::Value::BoolValue(v),
-        Value::Bytes(v) => attribute_value::Value::StringValue(to_truncate(hex::encode(&v))),
+        Value::Bool(v) => attribute_value::Value::BoolValue(*v),
+        Value::Bytes(v) => attribute_value::Value::StringValue(to_truncate(hex::encode(v))),
         Value::F64(v) => attribute_value::Value::StringValue(to_truncate(v.to_string())),
-        Value::I64(v) => attribute_value::Value::IntValue(v),
-        Value::String(v) => attribute_value::Value::StringValue(to_truncate(v)),
-        Value::U64(v) => attribute_value::Value::IntValue(v as i64),
+        Value::I64(v) => attribute_value::Value::IntValue(*v),
+        Value::String(v) => attribute_value::Value::StringValue(to_truncate(v.clone())),
+        Value::U64(v) => attribute_value::Value::IntValue(*v as i64),
     };
     AttributeValue {
         value: Some(new_value),
